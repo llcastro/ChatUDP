@@ -18,11 +18,10 @@ import java.util.ArrayList;
 public class EchoServer {
     
     private static final ArrayList<User> connected = new ArrayList<>();
-    
     private static DatagramPacket dpacket;
     
     public static void main(String[] args) throws SocketException, IOException {
-        int port = 2000;
+        int port = 22000;
         DatagramSocket dsocket = new DatagramSocket(port);
         byte[] byteMessage = new byte[1000];
         dpacket = new DatagramPacket(byteMessage, byteMessage.length);

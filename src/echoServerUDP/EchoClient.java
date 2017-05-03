@@ -19,8 +19,9 @@ import java.util.Date;
 public class EchoClient {
 
     public static void main(String[] args) throws Exception {
+        //InetAddress address = InetAddress.getLocalHost();
         InetAddress address = InetAddress.getLocalHost();
-        int port = 2000;
+        int port = 22000;
         DatagramSocket dsocket = new DatagramSocket();
         BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
         
@@ -43,7 +44,7 @@ public class EchoClient {
             Date receiveTime = new Date();
             
             if(message.toLowerCase().trim().equals("5")) {
-                System.out.println("cliente fechado!");
+                System.out.println("cliente fechado!:" + message);
                 break;
             }
 
