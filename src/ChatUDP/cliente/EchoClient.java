@@ -1,16 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package ChatUDP;
+
+package ChatUDP.cliente;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Date;
 
 /**
  *
@@ -35,22 +30,18 @@ public class EchoClient {
                     byteMessage, byteMessage.length, address, port);
             dsocket.send(dpacket);
             
-            Date sendTime = new Date();
             byte[] buffer = new byte[1000];
             DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
             dsocket.receive(reply);
             
             message = new String(reply.getData());
-            Date receiveTime = new Date();
             
             if(message.toLowerCase().trim().equals("5")) {
                 System.out.println("cliente fechado!:" + message);
                 break;
             }
 
-            System.out.println((receiveTime.getTime() - sendTime.getTime())
-                    + " miliseconds echo time for " + message);
+            System.out.println("packet: " + message);
         }
-
     }
 }

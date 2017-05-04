@@ -1,10 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package ChatUDP;
 
+package ChatUDP.servidor;
+
+import ChatUDP.model.User;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -33,8 +30,8 @@ public class EchoServer {
             int packSize = dpacket.getLength();
             String s = new String(me, 0, packSize).trim();
             
-            System.out.println(packSize + " " + dpacket.getAddress() + ":"
-                    + dpacket.getPort() + " #" + s + "#");
+            System.out.println(dpacket.getAddress() + ":"
+                    + dpacket.getPort() + " :" + s + ":");
             
             s = chooseAction(s);
             me = s.getBytes();
