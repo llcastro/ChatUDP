@@ -65,7 +65,7 @@ public class EchoServer {
     private static String addConnected() {
         String message = "";
         for(User u : connected) {
-            message += u.toString() + '\n';
+            message += u.toString() + '#';
         }
         return message;
     }

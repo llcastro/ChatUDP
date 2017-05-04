@@ -8,27 +8,29 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.table.AbstractTableModel;
 
 /**
  *
  * @author luis
  */
-public class TelaCliente extends javax.swing.JFrame {
+public class TelaCliente extends javax.swing.JFrame implements Runnable {
 
     private DatagramSocket dsocket;
     private int port;
     private String message;
     private InetAddress address;
 
+    private ArrayList<User> usersConnected;
+
     public TelaCliente() {
         initComponents();
 
-        List<User> lista = new ArrayList<>();
-        jTableLogados.setModel(new TableModelCliente(lista));
+        this.usersConnected = new ArrayList<>();
+        jTableLogados.setModel(new TableModelServidor(this.usersConnected));
 
         this.initSocket();
     }
@@ -77,8 +79,6 @@ public class TelaCliente extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBounds(new java.awt.Rectangle(0, 0, 10, 10));
-        setMaximumSize(new java.awt.Dimension(800, 640));
-        setPreferredSize(new java.awt.Dimension(800, 640));
 
         WestPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         WestPanel.setMaximumSize(new java.awt.Dimension(100, 300));
@@ -117,7 +117,7 @@ public class TelaCliente extends javax.swing.JFrame {
         NorthPanel.add(jFormattedTextFieldIPServidor);
         NorthPanel.add(rigidBox1);
 
-        jLabelPortaServidor.setText("IP do Servidor: ");
+        jLabelPortaServidor.setText("Porta do Servidor");
         NorthPanel.add(jLabelPortaServidor);
         NorthPanel.add(rigidBox6);
 
@@ -167,6 +167,11 @@ public class TelaCliente extends javax.swing.JFrame {
         jButtonEnviar.setMaximumSize(new java.awt.Dimension(400, 25));
         jButtonEnviar.setMinimumSize(new java.awt.Dimension(75, 25));
         jButtonEnviar.setPreferredSize(new java.awt.Dimension(100, 25));
+        jButtonEnviar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEnviarActionPerformed(evt);
+            }
+        });
         CenterPanel.add(jButtonEnviar);
 
         getContentPane().add(CenterPanel, java.awt.BorderLayout.CENTER);
@@ -178,7 +183,7 @@ public class TelaCliente extends javax.swing.JFrame {
     private void jButtonConectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConectarActionPerformed
         String m;
         setIPPort();
-        
+
         this.message = "1#luis";
         this.message = sendMessage(this.message);
 
@@ -197,6 +202,9 @@ public class TelaCliente extends javax.swing.JFrame {
         }
 
         System.out.println("received packet: " + this.message);
+
+        Thread thread = new Thread(this);
+        thread.start();
     }//GEN-LAST:event_jButtonConectarActionPerformed
 
     private void jButtonDesconectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDesconectarActionPerformed
@@ -220,6 +228,22 @@ public class TelaCliente extends javax.swing.JFrame {
 
         System.out.println("received packet: " + this.message);
     }//GEN-LAST:event_jButtonDesconectarActionPerformed
+
+    private void jButtonEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEnviarActionPerformed
+        //try {
+        this.message = this.jTextFieldMensagem.getText().toString();
+
+        this.message = sendMessage(this.message);
+
+        System.out.println(this.message);
+        this.jTextAreaMensagens.setText(
+                this.jTextAreaMensagens.getText() + "\n" + this.message);
+
+        /*} catch (IOException ex) {
+            Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("IOException" + ex.getMessage());
+        }*/
+    }//GEN-LAST:event_jButtonEnviarActionPerformed
 
     private String sendMessage(String protocol) {
         try {
@@ -262,10 +286,42 @@ public class TelaCliente extends javax.swing.JFrame {
             Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    @Override
+    public void run() {
+        // udate table of user connected
+        try {
+            while (true) {
+                this.message = this.sendMessage("listar");
+                String parts[] = this.message.split("#");
+                this.usersConnected.clear();
+
+                for (int i = 0; i < parts.length; i++) {
+                    String user[] = parts[i].split(":");
+                    if (user.length == 3) {
+                        User u = new User(user[0], user[1], Integer.valueOf(user[2]));
+                        if (!this.exists(u)) {
+                            this.usersConnected.add(u);
+                        }
+                    }
+                }
+                ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
+                Thread.sleep(3000);
+            }
+        } catch (InterruptedException ex) {
+            Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
-    private void setTable() {
-        // TODO
-        // show in the table all users connected
+    private boolean exists(User u) {
+        for (User user : this.usersConnected) {
+            if((user.getIp() == u.getIp()) &&
+               (user.getPort() == u.getPort()) &&
+               (user.getUserName() == u.getUserName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -293,8 +349,6 @@ public class TelaCliente extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(TelaCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {

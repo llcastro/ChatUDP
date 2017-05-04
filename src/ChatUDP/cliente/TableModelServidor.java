@@ -9,13 +9,13 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author luis
  */
-public class TableModelCliente extends AbstractTableModel {
+public class TableModelServidor extends AbstractTableModel {
     
     private List<User> lista;
     String[] headerList = {"IP", "Porta", "Nome"};
     Class[] classes = {String.class, String.class, String.class};
 
-    public TableModelCliente(List<User> lista) {
+    public TableModelServidor(List<User> lista) {
         this.lista = lista;
     }
 
@@ -33,7 +33,16 @@ public class TableModelCliente extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         User entity = null;
         entity = lista.get(rowIndex);
-        return entity;
+        switch (columnIndex) {
+            case 0:
+                return entity.getIp();
+            case 1:
+                return entity.getPort();
+            case 2:
+                return entity.getUserName();
+            default:
+                return "";
+        }
     }
 
     @Override
