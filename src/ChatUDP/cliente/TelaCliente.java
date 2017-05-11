@@ -1,5 +1,6 @@
 package ChatUDP.cliente;
 
+import ChatUDP.model.TableModelUsuarios;
 import ChatUDP.model.User;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -30,7 +31,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         initComponents();
 
         this.usersConnected = new ArrayList<>();
-        jTableLogados.setModel(new TableModelServidor(this.usersConnected));
+        jTableLogados.setModel(new TableModelUsuarios(this.usersConnected));
 
         this.initSocket();
     }
@@ -289,26 +290,28 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
 
     @Override
     public void run() {
-        // udate table of user connected
+        // update table of users connected
         try {
             while (true) {
-                this.message = this.sendMessage("listar");
-                String parts[] = this.message.split("#");
-                this.usersConnected.clear();
+                byte[] users = new byte[1000];
+                DatagramPacket dpacketReceived = new DatagramPacket(users, users.length);
+                System.out.println("Ready to receive connected users list");
+                dsocket.receive(dpacketReceived);
 
-                for (int i = 0; i < parts.length; i++) {
-                    String user[] = parts[i].split(":");
-                    if (user.length == 3) {
-                        User u = new User(user[0], user[1], Integer.valueOf(user[2]));
-                        if (!this.exists(u)) {
-                            this.usersConnected.add(u);
-                        }
-                    }
+                byte[] usersReceived = dpacketReceived.getData();
+                int packSize = dpacketReceived.getLength();
+                String usersList = new String(usersReceived, 0, packSize).trim();
+                
+                int i = new SplitMessages(this.usersConnected)
+                        .splitConnectedUsers(usersList);
+                if(i == 0) {
+                    System.out.println("ok: " + usersList);
+                    ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
+                } else {
+                    System.out.println("incorrect protocol: " + usersList);
                 }
-                ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
-                Thread.sleep(3000);
             }
-        } catch (InterruptedException ex) {
+        } catch (IOException ex) {
             Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

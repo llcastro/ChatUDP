@@ -1,16 +1,14 @@
 package ChatUDP.servidor;
 
+import ChatUDP.model.TableModelUsuarios;
 import ChatUDP.model.User;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -30,7 +28,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         initComponents();
 
         this.usersConnected = new ArrayList<>();
-        jTableLogados.setModel(new TableModelServidor(this.usersConnected));
+        jTableLogados.setModel(new TableModelUsuarios(this.usersConnected));
 
         this.initSocket();
     }

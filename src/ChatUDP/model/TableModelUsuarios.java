@@ -1,7 +1,6 @@
 
-package ChatUDP.cliente;
+package ChatUDP.model;
 
-import ChatUDP.model.User;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
@@ -9,13 +8,13 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author luis
  */
-public class TableModelServidor extends AbstractTableModel {
+public class TableModelUsuarios extends AbstractTableModel {
     
     private List<User> lista;
     String[] headerList = {"IP", "Porta", "Nome"};
     Class[] classes = {String.class, String.class, String.class};
 
-    public TableModelServidor(List<User> lista) {
+    public TableModelUsuarios(List<User> lista) {
         this.lista = lista;
     }
 
