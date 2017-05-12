@@ -1,5 +1,6 @@
 package ChatUDP.cliente;
 
+import ChatUDP.model.PrepareMessages;
 import ChatUDP.model.TableModelUsuarios;
 import ChatUDP.model.User;
 import java.io.IOException;
@@ -14,10 +15,6 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
 
-/**
- *
- * @author luis
- */
 public class TelaCliente extends javax.swing.JFrame implements Runnable {
 
     private DatagramSocket dsocket;
@@ -186,21 +183,20 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         setIPPort();
 
         this.message = "1#luis";
+        System.out.println("send packet: " + this.message);
         this.message = sendMessage(this.message);
 
-        if (this.message.toLowerCase().trim().equals("1")) {
+        if (this.message.toLowerCase().trim().startsWith("2")) {
             m = "conexao estabelecida com: " + this.address
                     + ":" + this.port;
-            System.out.println(m);
-            this.jTextAreaMensagens.setText(
-                    this.jTextAreaMensagens.getText() + "\n" + m);
         } else {
             m = "falha ao se conectar ao ip:" + this.address
                     + ":" + this.port;
-            System.out.println(m);
-            this.jTextAreaMensagens.setText(
-                    this.jTextAreaMensagens.getText() + "\n" + m);
         }
+
+        System.out.println(m);
+        this.jTextAreaMensagens.setText(
+                this.jTextAreaMensagens.getText() + "\n" + m);
 
         System.out.println("received packet: " + this.message);
 
@@ -301,10 +297,10 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                 byte[] usersReceived = dpacketReceived.getData();
                 int packSize = dpacketReceived.getLength();
                 String usersList = new String(usersReceived, 0, packSize).trim();
-                
-                int i = new SplitMessages(this.usersConnected)
+
+                int i = new PrepareMessages(this.usersConnected)
                         .splitConnectedUsers(usersList);
-                if(i == 0) {
+                if (i == 0) {
                     System.out.println("ok: " + usersList);
                     ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
                 } else {
@@ -315,12 +311,12 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private boolean exists(User u) {
         for (User user : this.usersConnected) {
-            if((user.getIp() == u.getIp()) &&
-               (user.getPort() == u.getPort()) &&
-               (user.getUserName() == u.getUserName())) {
+            if ((user.getIp() == u.getIp())
+                    && (user.getPort() == u.getPort())
+                    && (user.getUserName() == u.getUserName())) {
                 return true;
             }
         }

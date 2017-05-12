@@ -1,20 +1,19 @@
 package ChatUDP.servidor;
 
+import ChatUDP.model.PrepareMessages;
 import ChatUDP.model.TableModelUsuarios;
 import ChatUDP.model.User;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.AbstractTableModel;
 
-/**
- *
- * @author luis
- */
 public class TelaServidor extends javax.swing.JFrame implements Runnable {
 
     private DatagramPacket dpacket;
@@ -133,7 +132,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         }
     }//GEN-LAST:event_jButtonConectarActionPerformed
 
-    private String chooseAction(String message) {
+    private String chooseAction(String message) throws IOException {
         String[] parts = message.split("#");
 
         if (parts.length == 2 && parts[0].equals("1") && !parts[1].equals("")) {
@@ -143,7 +142,15 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                             dpacket.getPort()));
             ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
             System.out.println("Cliente " + parts[1] + " logado");
-            return "1";
+
+            String s = new PrepareMessages(this.usersConnected)
+                    .prepareMessageToBroadcast(null);
+            if (s != null) {
+                this.sendBroadcast(s);
+                return s;
+            } else {
+                return "";
+            }
         } else if (parts.length == 1 && parts[0].equals("5")) {
             int i = searchUser(dpacket.getAddress().toString());
             if (i != -1) {
@@ -175,6 +182,15 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             }
         }
         return -1;
+    }
+
+    private void sendBroadcast(String s) throws UnknownHostException, IOException {
+        for (User u : this.usersConnected) {
+            byte[] me = s.getBytes();
+            DatagramPacket reply = new DatagramPacket(
+                    me, me.length, InetAddress.getByName(u.getIp()), u.getPort());
+            dsocket.send(reply);
+        }
     }
 
     @Override
@@ -228,7 +244,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             java.util.logging.Logger.getLogger(TelaServidor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {

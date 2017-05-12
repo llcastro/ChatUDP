@@ -1,25 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package ChatUDP.cliente;
+
+package ChatUDP.model;
 
 import ChatUDP.model.User;
 import java.util.ArrayList;
 
-/**
- *
- * @author luis
- */
-public class SplitMessages {
+public class PrepareMessages {
 
     private ArrayList<User> users;
     
-    public SplitMessages() {
+    public PrepareMessages() {
     }
 
-    public SplitMessages(ArrayList<User> users) {
+    public PrepareMessages(ArrayList<User> users) {
         this.users = users;
     }
     
@@ -42,6 +34,20 @@ public class SplitMessages {
         }
         
         return -1;
+    }
+    
+    // used by server
+    public String prepareMessageToBroadcast(String message) {
+        // broadcast of connected users
+        if(message == null) {
+            String reply = "2#";
+            for(User u : this.users) {
+                reply += u.toString() + "#";
+            }
+            return reply;
+        } // TODO, message broadcast
+        
+        return null;
     }
     
 }

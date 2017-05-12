@@ -1,10 +1,6 @@
 
 package ChatUDP.model;
 
-/**
- *
- * @author luis
- */
 public class User {
 
     private String userName;
@@ -26,7 +22,7 @@ public class User {
     }
 
     public String getIp() {
-        return ip;
+        return ip.substring(1, ip.length());
     }
 
     public void setIp(String ip) {
@@ -43,6 +39,6 @@ public class User {
 
     @Override
     public String toString() {
-        return userName + ":" + ip + ":" + port;
+        return ip + "#" + port + "#" + userName;
     }
 }
