@@ -184,33 +184,19 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     private void jButtonConectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConectarActionPerformed
         String m;
         setIPPort();
-
-        this.message = "1#luis";
-        System.out.println("send packet: " + this.message);
-        this.message = sendReceiveMessage(this.message);
-
-        if (this.message.toLowerCase().trim().startsWith("2")) {
-            m = "conexao estabelecida com: " + this.address
-                    + ":" + this.port;
-        } else {
-            m = "falha ao se conectar ao ip:" + this.address
-                    + ":" + this.port;
-        }
-
-        System.out.println(m);
-        this.jTextAreaMensagens.setText(
-                this.jTextAreaMensagens.getText() + "\n" + m);
-
-        System.out.println("received packet: " + this.message);
-
-        this.jButtonConectar.setEnabled(false);
-        this.jButtonDesconectar.setEnabled(true);
-
+        
         if (this.thread == null) {
             System.out.println("new thread");
             this.thread = new Thread(this);
             this.thread.start();
         }
+
+        this.message = "1#capiroto";
+        System.out.println("send packet: " + this.message);
+        sendMessage(this.message);
+
+        this.jButtonConectar.setEnabled(false);
+        this.jButtonDesconectar.setEnabled(true);
     }//GEN-LAST:event_jButtonConectarActionPerformed
 
     private void jButtonDesconectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDesconectarActionPerformed
@@ -228,85 +214,47 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     }//GEN-LAST:event_jButtonDesconectarActionPerformed
 
     private void jButtonEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEnviarActionPerformed
-        try {
-            String msg = this.jTextFieldMensagem.getText().toString();
-            if (msg.isEmpty()) {
-                System.out.println("empty message!");
+
+        String msg = this.jTextFieldMensagem.getText().toString();
+        if (msg.isEmpty()) {
+            System.out.println("empty message!");
+            return;
+        }
+
+        if (jCheckBoxBroadcast.isSelected()) {
+            // broadcast
+            this.message = "3#999.999.999.999#99999#" + msg;
+            sendMessage(this.message);
+        } else {
+            int row = jTableLogados.getSelectedRow();
+            if (row < 0) {
+                System.out.println("select a row!");
                 return;
             }
-            
-            if (jCheckBoxBroadcast.isSelected()) {
-                // broadcast
-                this.message = "3#999.999.999.999#99999#" + msg;
-                sendMessage(this.message);
-            } else {
-                int row = jTableLogados.getSelectedRow();
-                if (row < 0) {
-                    System.out.println("select a row!");
-                    return;
-                }
 
-                this.address = InetAddress.getByName(
-                        jTableLogados.getValueAt(row, 0).toString());
-                this.port = (int) jTableLogados.getValueAt(row, 1);
+            String ipUser = jTableLogados.getValueAt(row, 0).toString();
+            int portUser = (int) jTableLogados.getValueAt(row, 1);
 
-                this.message = "3#"
-                        + this.address.toString().substring(1,
-                                this.address.toString().length()) + "#"
-                        + this.port + "#"
-                        + msg;
+            this.message = "3#"
+                    + ipUser + "#"
+                    + portUser + "#"
+                    + msg;
 
-                sendMessage(this.message);
-            }
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
+            sendMessage(this.message);
         }
+        this.jTextAreaMensagens.setText(
+                this.jTextAreaMensagens.getText() + "\nVocê: " + msg);
+        this.jTextFieldMensagem.setText("");
     }//GEN-LAST:event_jButtonEnviarActionPerformed
 
     private void disconnectChat() {
-        String m;
-        if (this.message.toLowerCase().trim().equals("5")) {
-            m = "conexao fechada: " + this.address
-                    + ":" + this.port;
-        } else {
-            m = "falha ao fechar conexao: " + this.address
-                    + ":" + this.port;
-        }
-
-        System.out.println(m);
-        this.jTextAreaMensagens.setText(
-                this.jTextAreaMensagens.getText() + "\n" + m);
-
-        System.out.println("received packet: " + this.message);
+        this.jTextAreaMensagens.setText("desconectado!");
 
         this.jButtonConectar.setEnabled(true);
         this.jButtonDesconectar.setEnabled(false);
 
         this.usersConnected.clear();
         ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
-    }
-
-    private String sendReceiveMessage(String protocol) {
-        try {
-            byte[] byteMessage = protocol.getBytes();
-            DatagramPacket dpacket = new DatagramPacket(
-                    byteMessage, byteMessage.length, this.address, this.port);
-            dsocket.send(dpacket);
-            System.out.println("send: " + protocol);
-
-            byte[] buffer = new byte[1000];
-            DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-            dsocket.receive(reply);
-            System.out.println("received: " + new String(reply.getData()));
-
-            return new String(reply.getData());
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
-            return "UnknownHostException " + ex.getMessage();
-        } catch (IOException ex) {
-            Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
-            return "IOException " + ex.getMessage();
-        }
     }
 
     private void sendMessage(String protocol) {
@@ -351,44 +299,39 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             while (true) {
                 byte[] users = new byte[1000];
                 DatagramPacket dpacketReceived = new DatagramPacket(users, users.length);
-                System.out.println("Ready to receive connected users list");
+                System.out.println("-----------------");
                 dsocket.receive(dpacketReceived);
 
                 byte[] usersReceived = dpacketReceived.getData();
                 int packSize = dpacketReceived.getLength();
                 String usersList = new String(usersReceived, 0, packSize).trim();
+                System.out.println("received: " + usersList);
 
                 int i = new PrepareMessages(this.usersConnected)
                         .splitConnectedUsers(usersList);
-                if (i == 0) {
-                    System.out.println("ok: " + usersList);
-                    ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
-                } else if (i == 5) {
-                    this.message = usersList;
-                    this.disconnectChat();
-                } else if (i == 4) {
-                    String s = new PrepareMessages().separateString(usersList, "#", 3);
-                    this.jTextAreaMensagens.setText(
-                            this.jTextAreaMensagens.getText() + "\n" + s);
-                    System.out.println("received: " + usersList);
-                } else {
-                    System.out.println("incorrect protocol: " + usersList);
+                
+                switch (i) {
+                    case 2: // receive users list
+                        ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
+                        break;
+                    case 5: // disconnect
+                        this.message = usersList;
+                        this.disconnectChat();
+                        break;
+                    case 4: // receive message
+                        String s = new PrepareMessages().separateString(usersList, "#", 3);
+                        String ip = new PrepareMessages().separateString(usersList, "#", 1);
+                        this.jTextAreaMensagens.setText(
+                                this.jTextAreaMensagens.getText() + "\n" + ip + ": " + s);
+                        break;
+                    default:
+                        System.out.println("incorrect protocol: " + usersList);
+                        break;
                 }
             }
         } catch (IOException ex) {
             Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    private boolean exists(User u) {
-        for (User user : this.usersConnected) {
-            if ((user.getIp() == u.getIp())
-                    && (user.getPort() == u.getPort())
-                    && (user.getUserName() == u.getUserName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -407,13 +350,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(TelaCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(TelaCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(TelaCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(TelaCliente.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 

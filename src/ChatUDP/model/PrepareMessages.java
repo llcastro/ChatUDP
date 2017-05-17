@@ -17,9 +17,9 @@ public class PrepareMessages {
     // return 0 if ok, -1 if not
     // clean users array
     public int splitConnectedUsers(String message) {
-        String[] parts = message.split("#");
         
-        if(parts[0].trim().equals("2")) {
+        if(message.startsWith("2")) {
+            String[] parts = message.split("#");
             this.users.clear();
             int size = parts.length;
             
@@ -29,11 +29,11 @@ public class PrepareMessages {
                                 parts[i],
                                 Integer.valueOf(parts[i+1])));
             }
-            return 0;
-        } else if(parts[0].trim().equals("5")) {
+            return 2;
+        } else if(message.startsWith("5")) {
             // user disconnect
             return 5;
-        } else if(parts[0].trim().equals("4")) {
+        } else if(message.startsWith("4")) {
             // receive message
             return 4;
         }
@@ -44,7 +44,7 @@ public class PrepareMessages {
     // used by server
     public String prepareMessageToBroadcast(String message) {
         // broadcast of connected users
-        if(message.equals("2#") || message.equals("5#")) {
+        if(message.equals("2#") || message.equals("5")) {
             String reply = "2#";
             for(User u : this.users) {
                 reply += u.toString() + "#";

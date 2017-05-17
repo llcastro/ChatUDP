@@ -22,7 +22,7 @@ public class User {
     }
 
     public String getIp() {
-        return ip.substring(1, ip.length());
+        return ip;
     }
 
     public void setIp(String ip) {
