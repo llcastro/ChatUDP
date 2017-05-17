@@ -187,7 +187,6 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                                 this.usersConnected.get(i).getIp()),
                         this.usersConnected.get(i).getPort());
                 dsocket.send(reply);
-                System.out.println("send message: " + msg);
                 return "";
             } else {
                 System.out.println("invalid user!");
@@ -213,12 +212,12 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             return;
         }
         for (User u : this.usersConnected) {
-            if (!u.getIp().equals(ip) && u.getPort() != port) {
+            if(!(u.getIp().equals(ip) && u.getPort() == port)) {
                 byte[] me = message.getBytes();
                 DatagramPacket reply = new DatagramPacket(
                         me, me.length, InetAddress.getByName(u.getIp()), u.getPort());
-                System.out.println("broadcast: " + InetAddress.getByName(u.getIp()) + ":"
-                        + u.getPort() + "$" + message + "$");
+                System.out.println("broadcast: (" + u.getIp() + ":"
+                        + u.getPort() + "):" + message);
                 dsocket.send(reply);
             }
         }
@@ -238,8 +237,8 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                 String ipUser = dpacket.getAddress().toString();
                 ipUser = ipUser.substring(1, ipUser.length());
 
-                System.out.println("received from: " + ipUser + ":"
-                        + dpacket.getPort() + " :" + s + ":");
+                System.out.println("received from: (" + ipUser + ":"
+                        + dpacket.getPort() + "):" + s);
 
                 s = chooseAction(s);
                 if (!s.isEmpty()) {
@@ -247,7 +246,8 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                     DatagramPacket reply = new DatagramPacket(
                             me, me.length, dpacket.getAddress(), dpacket.getPort());
                     dsocket.send(reply);
-                    System.out.println("send message: " + s);
+                    System.out.println("reply message: (" + ipUser + ":"
+                        + dpacket.getPort() + "):" + s);
                 }
             }
         } catch (IOException ex) {
