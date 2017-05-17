@@ -1,7 +1,6 @@
 
 package ChatUDP.model;
 
-import ChatUDP.model.User;
 import java.util.ArrayList;
 
 public class PrepareMessages {
@@ -20,7 +19,7 @@ public class PrepareMessages {
     public int splitConnectedUsers(String message) {
         String[] parts = message.split("#");
         
-        if(parts[0].equals("2")) {
+        if(parts[0].trim().equals("2")) {
             this.users.clear();
             int size = parts.length;
             
@@ -31,6 +30,12 @@ public class PrepareMessages {
                                 Integer.valueOf(parts[i+1])));
             }
             return 0;
+        } else if(parts[0].trim().equals("5")) {
+            // user disconnect
+            return 5;
+        } else if(parts[0].trim().equals("4")) {
+            // receive message
+            return 4;
         }
         
         return -1;
@@ -39,15 +44,23 @@ public class PrepareMessages {
     // used by server
     public String prepareMessageToBroadcast(String message) {
         // broadcast of connected users
-        if(message == null) {
+        if(message.equals("2#") || message.equals("5#")) {
             String reply = "2#";
             for(User u : this.users) {
                 reply += u.toString() + "#";
             }
             return reply;
-        } // TODO, message broadcast
+        } 
+
+
+        // TODO, message broadcast
         
         return null;
+    }
+    
+    public String separateString(String s, String pattern, int pos) {
+        String[] parts = s.split(pattern);
+        return parts[pos];
     }
     
 }

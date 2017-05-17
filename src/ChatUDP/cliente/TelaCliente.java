@@ -23,9 +23,12 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     private InetAddress address;
 
     private ArrayList<User> usersConnected;
+    private Thread thread;
 
     public TelaCliente() {
         initComponents();
+
+        this.jButtonDesconectar.setEnabled(false);
 
         this.usersConnected = new ArrayList<>();
         jTableLogados.setModel(new TableModelUsuarios(this.usersConnected));
@@ -184,7 +187,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
 
         this.message = "1#luis";
         System.out.println("send packet: " + this.message);
-        this.message = sendMessage(this.message);
+        this.message = sendReceiveMessage(this.message);
 
         if (this.message.toLowerCase().trim().startsWith("2")) {
             m = "conexao estabelecida com: " + this.address
@@ -200,58 +203,101 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
 
         System.out.println("received packet: " + this.message);
 
-        Thread thread = new Thread(this);
-        thread.start();
+        this.jButtonConectar.setEnabled(false);
+        this.jButtonDesconectar.setEnabled(true);
+
+        if (this.thread == null) {
+            System.out.println("new thread");
+            this.thread = new Thread(this);
+            this.thread.start();
+        }
     }//GEN-LAST:event_jButtonConectarActionPerformed
 
     private void jButtonDesconectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDesconectarActionPerformed
-        String m;
-        this.message = "5#";
-        this.message = sendMessage(this.message);
+        try {
+            this.message = "5#";
+            System.out.println("send packet: " + this.message);
 
-        if (this.message.toLowerCase().trim().equals("5")) {
-            m = "conexao fechada: " + this.address
-                    + ":" + this.port;
-            System.out.println(m);
-            this.jTextAreaMensagens.setText(
-                    this.jTextAreaMensagens.getText() + "\n" + m);
-        } else {
-            m = "falha ao fechar conexao: " + this.address
-                    + ":" + this.port;
-            System.out.println(m);
-            this.jTextAreaMensagens.setText(
-                    this.jTextAreaMensagens.getText() + "\n" + m);
+            byte[] byteMessage = this.message.getBytes();
+            DatagramPacket dpacket = new DatagramPacket(
+                    byteMessage, byteMessage.length, this.address, this.port);
+            dsocket.send(dpacket);
+        } catch (IOException ex) {
+            Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        System.out.println("received packet: " + this.message);
     }//GEN-LAST:event_jButtonDesconectarActionPerformed
 
     private void jButtonEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEnviarActionPerformed
-        //try {
-        this.message = this.jTextFieldMensagem.getText().toString();
+        try {
+            String msg = this.jTextFieldMensagem.getText().toString();
+            if (msg.isEmpty()) {
+                System.out.println("empty message!");
+                return;
+            }
+            
+            if (jCheckBoxBroadcast.isSelected()) {
+                // broadcast
+                this.message = "3#999.999.999.999#99999#" + msg;
+                sendMessage(this.message);
+            } else {
+                int row = jTableLogados.getSelectedRow();
+                if (row < 0) {
+                    System.out.println("select a row!");
+                    return;
+                }
 
-        this.message = sendMessage(this.message);
+                this.address = InetAddress.getByName(
+                        jTableLogados.getValueAt(row, 0).toString());
+                this.port = (int) jTableLogados.getValueAt(row, 1);
 
-        System.out.println(this.message);
-        this.jTextAreaMensagens.setText(
-                this.jTextAreaMensagens.getText() + "\n" + this.message);
+                this.message = "3#"
+                        + this.address.toString().substring(1,
+                                this.address.toString().length()) + "#"
+                        + this.port + "#"
+                        + msg;
 
-        /*} catch (IOException ex) {
+                sendMessage(this.message);
+            }
+        } catch (UnknownHostException ex) {
             Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("IOException" + ex.getMessage());
-        }*/
+        }
     }//GEN-LAST:event_jButtonEnviarActionPerformed
 
-    private String sendMessage(String protocol) {
+    private void disconnectChat() {
+        String m;
+        if (this.message.toLowerCase().trim().equals("5")) {
+            m = "conexao fechada: " + this.address
+                    + ":" + this.port;
+        } else {
+            m = "falha ao fechar conexao: " + this.address
+                    + ":" + this.port;
+        }
+
+        System.out.println(m);
+        this.jTextAreaMensagens.setText(
+                this.jTextAreaMensagens.getText() + "\n" + m);
+
+        System.out.println("received packet: " + this.message);
+
+        this.jButtonConectar.setEnabled(true);
+        this.jButtonDesconectar.setEnabled(false);
+
+        this.usersConnected.clear();
+        ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
+    }
+
+    private String sendReceiveMessage(String protocol) {
         try {
             byte[] byteMessage = protocol.getBytes();
             DatagramPacket dpacket = new DatagramPacket(
-                    byteMessage, byteMessage.length, address, port);
+                    byteMessage, byteMessage.length, this.address, this.port);
             dsocket.send(dpacket);
+            System.out.println("send: " + protocol);
 
             byte[] buffer = new byte[1000];
             DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
             dsocket.receive(reply);
+            System.out.println("received: " + new String(reply.getData()));
 
             return new String(reply.getData());
         } catch (UnknownHostException ex) {
@@ -260,6 +306,20 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         } catch (IOException ex) {
             Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
             return "IOException " + ex.getMessage();
+        }
+    }
+
+    private void sendMessage(String protocol) {
+        try {
+            byte[] byteMessage = protocol.getBytes();
+            DatagramPacket dpacket = new DatagramPacket(
+                    byteMessage, byteMessage.length, this.address, this.port);
+            dsocket.send(dpacket);
+            System.out.println("sendMessage: " + protocol);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -303,6 +363,14 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                 if (i == 0) {
                     System.out.println("ok: " + usersList);
                     ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
+                } else if (i == 5) {
+                    this.message = usersList;
+                    this.disconnectChat();
+                } else if (i == 4) {
+                    String s = new PrepareMessages().separateString(usersList, "#", 3);
+                    this.jTextAreaMensagens.setText(
+                            this.jTextAreaMensagens.getText() + "\n" + s);
+                    System.out.println("received: " + usersList);
                 } else {
                     System.out.println("incorrect protocol: " + usersList);
                 }
