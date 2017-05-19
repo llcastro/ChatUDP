@@ -191,7 +191,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             this.thread.start();
         }
 
-        this.message = "1#capiroto";
+        this.message = "1#jesus";
         System.out.println("send packet: " + this.message);
         sendMessage(this.message);
 

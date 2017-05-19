@@ -171,8 +171,8 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         } else if (parts.length == 4 && parts[0].equals("3") && parts[1].equals("999.999.999.999")
                 && parts[2].equals("99999") && !parts[3].isEmpty()) {
             //send broadcast
-            this.sendBroadcast("4#" + parts[1] + "#" + parts[2] + "#" + parts[3],
-                                ipUser, portUser);
+            this.sendBroadcast("4#" + ipUser + "#" + portUser + "#" + parts[3],
+                    ipUser, portUser);
             return "";
         } else if (parts.length == 4 && parts[0].equals("3") && !parts[1].isEmpty()
                 && !parts[2].isEmpty() && !parts[3].isEmpty()) {
@@ -180,13 +180,16 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             int i = searchUser(parts[1], Integer.valueOf(parts[2]));
 
             if (i != -1) {
-                String msg = "4#" + parts[1] + "#" + parts[2] + "#" + parts[3];
+                String msg = "4#" + ipUser + "#" + portUser + "#" + parts[3];
                 byte[] me = msg.getBytes();
                 DatagramPacket reply = new DatagramPacket(
                         me, me.length, InetAddress.getByName(
                                 this.usersConnected.get(i).getIp()),
                         this.usersConnected.get(i).getPort());
                 dsocket.send(reply);
+                
+                System.out.println("reply message: (" + ipUser + ":"
+                        + dpacket.getPort() + "):" + msg);
                 return "";
             } else {
                 System.out.println("invalid user!");
@@ -207,6 +210,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         return -1;
     }
 
+    // if broadcast = s, then change message
     private void sendBroadcast(String message, String ip, int port) throws UnknownHostException, IOException {
         if (this.usersConnected.isEmpty()) {
             return;
@@ -237,6 +241,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                 String ipUser = dpacket.getAddress().toString();
                 ipUser = ipUser.substring(1, ipUser.length());
 
+                System.out.println("-------------");
                 System.out.println("received from: (" + ipUser + ":"
                         + dpacket.getPort() + "):" + s);
 
