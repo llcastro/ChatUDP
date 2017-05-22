@@ -63,4 +63,15 @@ public class PrepareMessages {
         return parts[pos];
     }
     
+    // returns the index of the user or -1 if he doesn't exist
+    public int searchUser(String ip, int port) {
+
+        for (User u : this.users) {
+            if (u.getIp().equals(ip) && u.getPort() == port) {
+                return this.users.indexOf(u);
+            }
+        }
+        return -1;
+    }
+    
 }

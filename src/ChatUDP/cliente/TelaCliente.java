@@ -182,7 +182,6 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonConectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConectarActionPerformed
-        String m;
         setIPPort();
         
         if (this.thread == null) {
@@ -190,11 +189,13 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             this.thread = new Thread(this);
             this.thread.start();
         }
-
-        this.message = "1#jesus";
+        
+        String user = "didi";
+        this.message = "1#" + user;
         System.out.println("send packet: " + this.message);
         sendMessage(this.message);
 
+        this.setTitle(user);
         this.jButtonConectar.setEnabled(false);
         this.jButtonDesconectar.setEnabled(true);
     }//GEN-LAST:event_jButtonConectarActionPerformed
@@ -321,8 +322,12 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                     case 4: // receive message
                         String s = new PrepareMessages().separateString(usersList, "#", 3);
                         String ip = new PrepareMessages().separateString(usersList, "#", 1);
+                        String port = new PrepareMessages().separateString(usersList, "#", 2);
+                        int indexUser = new PrepareMessages(this.usersConnected)
+                                .searchUser(ip, Integer.valueOf(port));
+                        String nameUser = this.usersConnected.get(indexUser).getUserName();
                         this.jTextAreaMensagens.setText(
-                                this.jTextAreaMensagens.getText() + "\n" + ip + ": " + s);
+                                this.jTextAreaMensagens.getText() + "\n" + nameUser + ": " + s);
                         break;
                     default:
                         System.out.println("incorrect protocol: " + usersList);

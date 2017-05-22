@@ -154,7 +154,8 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                 return "";
             }
         } else if (parts[0].startsWith("5")) {
-            int i = searchUser(ipUser, portUser);
+            int i = new PrepareMessages(this.usersConnected)
+                    .searchUser(ipUser, portUser);
             if (i != -1) {
                 this.usersConnected.remove(i);
             }
@@ -177,7 +178,8 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         } else if (parts.length == 4 && parts[0].equals("3") && !parts[1].isEmpty()
                 && !parts[2].isEmpty() && !parts[3].isEmpty()) {
 
-            int i = searchUser(parts[1], Integer.valueOf(parts[2]));
+            int i = new PrepareMessages(this.usersConnected)
+                    .searchUser(parts[1], Integer.valueOf(parts[2]));
 
             if (i != -1) {
                 String msg = "4#" + ipUser + "#" + portUser + "#" + parts[3];
@@ -198,16 +200,6 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         }
 
         return "unknown protocol: " + message;
-    }
-
-    private int searchUser(String ip, int port) {
-
-        for (User u : this.usersConnected) {
-            if (u.getIp().equals(ip) && u.getPort() == port) {
-                return this.usersConnected.indexOf(u);
-            }
-        }
-        return -1;
     }
 
     // if broadcast = s, then change message
