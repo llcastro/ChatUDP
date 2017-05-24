@@ -44,7 +44,7 @@ public class PrepareMessages {
     // used by server
     public String prepareMessageToBroadcast(String message) {
         // broadcast of connected users
-        if(message.equals("2#") || message.equals("5")) {
+        if(message.equals("2#")) {
             String reply = "2";
             for(User u : this.users) {
                 reply += "#" + u.toString();

@@ -190,7 +190,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             this.thread.start();
         }
         
-        String user = "didi";
+        String user = "gandalf";
         this.message = "1#" + user;
         System.out.println("send packet: " + this.message);
         sendMessage(this.message);
@@ -209,6 +209,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             DatagramPacket dpacket = new DatagramPacket(
                     byteMessage, byteMessage.length, this.address, this.port);
             dsocket.send(dpacket);
+            this.disconnectChat();
         } catch (IOException ex) {
             Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -314,10 +315,6 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                 switch (i) {
                     case 2: // receive users list
                         ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
-                        break;
-                    case 5: // disconnect
-                        this.message = usersList;
-                        this.disconnectChat();
                         break;
                     case 4: // receive message
                         String s = new PrepareMessages().separateString(usersList, "#", 3);

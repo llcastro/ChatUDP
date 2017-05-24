@@ -162,11 +162,9 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
 
             String s = new PrepareMessages(this.usersConnected)
-                    .prepareMessageToBroadcast("5");
+                    .prepareMessageToBroadcast("2#");
             if (s != null) {
                 this.sendBroadcast(s, ipUser, portUser);
-                return "5";
-            } else {
                 return "";
             }
         } else if (parts.length == 4 && parts[0].equals("3") && parts[1].equals("999.999.999.999")
@@ -177,12 +175,12 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             return "";
         } else if (parts.length == 4 && parts[0].equals("3") && !parts[1].isEmpty()
                 && !parts[2].isEmpty() && !parts[3].isEmpty()) {
-
+            // reply message to one
             int i = new PrepareMessages(this.usersConnected)
                     .searchUser(parts[1], Integer.valueOf(parts[2]));
 
             if (i != -1) {
-                String msg = "4#" + ipUser + "#" + portUser + "#" + parts[3];
+                String msg = "4#" + ipUser + "#" + portUser + "#(privado) " + parts[3];
                 byte[] me = msg.getBytes();
                 DatagramPacket reply = new DatagramPacket(
                         me, me.length, InetAddress.getByName(
