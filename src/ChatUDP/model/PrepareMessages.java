@@ -74,4 +74,23 @@ public class PrepareMessages {
         return -1;
     }
     
+    // return the full message received
+    // pos = position of the '#' to start substring
+    public String returnMessage(String message, int pos) {
+        
+        char[] m = message.toCharArray();
+        int j = 0;
+        for (int i = 0; i < message.length(); i++) {
+            if(m[i] == '#') {
+                j++;
+            }
+            if(j == pos) {
+                j = i+1;
+                break;
+            }
+        }
+        
+        return message.substring(j, message.length());
+    }
+    
 }

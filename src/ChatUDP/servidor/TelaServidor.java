@@ -138,59 +138,52 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         String ipUser = this.dpacket.getAddress().toString();
         ipUser = ipUser.substring(1, ipUser.length());
         int portUser = this.dpacket.getPort();
+        PrepareMessages pm = new PrepareMessages(this.usersConnected);
         
-        if (parts[0].equals("1") && !parts[1].equals("")) {
+        if (message.startsWith("1") && !parts[1].equals("")) {
+            // connect
+            
             this.usersConnected.add(
                     new User(parts[1], ipUser, portUser));
             
             ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
 
-            String s = new PrepareMessages(this.usersConnected)
-                    .prepareMessageToBroadcast("2#");
+            String s = pm.prepareMessageToBroadcast("2#");
+            
             if (s != null) {
-                this.sendBroadcast(s, ipUser, portUser);
-                return s;
-            } else {
-                return "";
+                this.sendBroadcast(s);
             }
-        } else if (parts[0].startsWith("5")) {
-            int i = new PrepareMessages(this.usersConnected)
-                    .searchUser(ipUser, portUser);
+            return "";
+        } else if (message.startsWith("5")) {
+            // disconnect
+            int i = pm.searchUser(ipUser, portUser);
+            
             if (i != -1) {
                 this.usersConnected.remove(i);
             }
             ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
 
-            String s = new PrepareMessages(this.usersConnected)
-                    .prepareMessageToBroadcast("2#");
+            String s = pm.prepareMessageToBroadcast("2#");
+            
             if (s != null) {
-                this.sendBroadcast(s, ipUser, portUser);
-                return "";
+                this.sendBroadcast(s);
             }
-        } else if (parts.length == 4 && parts[0].equals("3") && parts[1].equals("999.999.999.999")
-                && parts[2].equals("99999") && !parts[3].isEmpty()) {
-            //send broadcast
-            this.sendBroadcast("4#" + ipUser + "#" + portUser + "#" + parts[3],
-                    ipUser, portUser);
             return "";
-        } else if (parts.length == 4 && parts[0].equals("3") && !parts[1].isEmpty()
-                && !parts[2].isEmpty() && !parts[3].isEmpty()) {
+        } else if (parts.length >= 4 && parts[0].equals("3") && parts[1].equals("999.999.999.999")
+                && parts[2].equals("99999")) {
+            // broadcast
+            parts[3] = pm.returnMessage(message, 3);
+            
+            this.sendBroadcast("4#" + ipUser + "#" + portUser + "#" + parts[3]);
+            return "";
+        } else if (parts.length >= 4 && parts[0].equals("3") && !parts[1].isEmpty()
+                && !parts[2].isEmpty()) {
             // reply message to one
-            int i = new PrepareMessages(this.usersConnected)
-                    .searchUser(parts[1], Integer.valueOf(parts[2]));
+            int i = pm.searchUser(parts[1], Integer.valueOf(parts[2]));
+            parts[3] = pm.returnMessage(message, 3);
 
             if (i != -1) {
-                String msg = "4#" + ipUser + "#" + portUser + "#(privado) " + parts[3];
-                byte[] me = msg.getBytes();
-                DatagramPacket reply = new DatagramPacket(
-                        me, me.length, InetAddress.getByName(
-                                this.usersConnected.get(i).getIp()),
-                        this.usersConnected.get(i).getPort());
-                dsocket.send(reply);
-                
-                System.out.println("reply message: (" + ipUser + ":"
-                        + dpacket.getPort() + "):" + msg);
-                return "";
+                return "4#" + ipUser + "#" + portUser + "#(privado) " + parts[3];
             } else {
                 System.out.println("invalid user!");
                 return "";
@@ -200,26 +193,23 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         return "unknown protocol: " + message;
     }
 
-    // if broadcast = s, then change message
-    private void sendBroadcast(String message, String ip, int port) throws UnknownHostException, IOException {
+    private void sendBroadcast(String message) throws UnknownHostException, IOException {
         if (this.usersConnected.isEmpty()) {
             return;
         }
         for (User u : this.usersConnected) {
-            if(!(u.getIp().equals(ip) && u.getPort() == port)) {
                 byte[] me = message.getBytes();
                 DatagramPacket reply = new DatagramPacket(
                         me, me.length, InetAddress.getByName(u.getIp()), u.getPort());
                 System.out.println("broadcast: (" + u.getIp() + ":"
                         + u.getPort() + "):" + message);
                 dsocket.send(reply);
-            }
         }
     }
 
     @Override
     public void run() {
-        // udate table of users connected
+        // listening thread
         try {
             while (true) {
                 dsocket.receive(dpacket);

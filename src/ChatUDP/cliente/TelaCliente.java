@@ -190,7 +190,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             this.thread.start();
         }
         
-        String user = "gandalf";
+        String user = "didi";
         this.message = "1#" + user;
         System.out.println("send packet: " + this.message);
         sendMessage(this.message);
@@ -244,8 +244,6 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
 
             sendMessage(this.message);
         }
-        this.jTextAreaMensagens.setText(
-                this.jTextAreaMensagens.getText() + "\nVocê: " + msg);
         this.jTextFieldMensagem.setText("");
     }//GEN-LAST:event_jButtonEnviarActionPerformed
 
@@ -296,7 +294,8 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
 
     @Override
     public void run() {
-        // update table of users connected
+        PrepareMessages pm = new PrepareMessages(this.usersConnected);
+        // listening thread
         try {
             while (true) {
                 byte[] users = new byte[1000];
@@ -309,20 +308,21 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                 String usersList = new String(usersReceived, 0, packSize).trim();
                 System.out.println("received: " + usersList);
 
-                int i = new PrepareMessages(this.usersConnected)
-                        .splitConnectedUsers(usersList);
+                int i = pm.splitConnectedUsers(usersList);
                 
                 switch (i) {
+                    case 5: // disconnect
+                        break;
                     case 2: // receive users list
                         ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
                         break;
                     case 4: // receive message
-                        String s = new PrepareMessages().separateString(usersList, "#", 3);
-                        String ip = new PrepareMessages().separateString(usersList, "#", 1);
-                        String port = new PrepareMessages().separateString(usersList, "#", 2);
-                        int indexUser = new PrepareMessages(this.usersConnected)
-                                .searchUser(ip, Integer.valueOf(port));
+                        String s = pm.returnMessage(usersList, 3);
+                        String ip = pm.separateString(usersList, "#", 1);
+                        String port = pm.separateString(usersList, "#", 2);
+                        int indexUser = pm.searchUser(ip, Integer.valueOf(port));
                         String nameUser = this.usersConnected.get(indexUser).getUserName();
+                        
                         this.jTextAreaMensagens.setText(
                                 this.jTextAreaMensagens.getText() + "\n" + nameUser + ": " + s);
                         break;
