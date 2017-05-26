@@ -28,15 +28,15 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
 
         this.usersConnected = new ArrayList<>();
         jTableLogados.setModel(new TableModelUsuarios(this.usersConnected));
-
-        this.initSocket();
     }
 
     private void initSocket() {
         try {
-            this.port = Integer.valueOf(this.jFormattedTextFieldPortaServidor.getText().toString());
+            this.port = Integer.valueOf(
+                    this.jFormattedTextFieldPortaServidor.getText().toString());
             if (this.port > 0) {
                 this.dsocket = new DatagramSocket(this.port);
+                System.out.println("Server up at port: " + this.dsocket.getLocalPort());
             }
         } catch (SocketException ex) {
             Logger.getLogger(TelaServidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -53,7 +53,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
     private void initComponents() {
 
         WestPanel = new javax.swing.JPanel();
-        jCheckBoxBroadcast = new javax.swing.JCheckBox();
+        jLabelUsuariosLogados = new javax.swing.JLabel();
         jScrollPaneTabelaConectados = new javax.swing.JScrollPane();
         jTableLogados = new javax.swing.JTable();
         NorthPanel = new javax.swing.JPanel();
@@ -73,8 +73,8 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         WestPanel.setPreferredSize(new java.awt.Dimension(350, 430));
         WestPanel.setLayout(new javax.swing.BoxLayout(WestPanel, javax.swing.BoxLayout.PAGE_AXIS));
 
-        jCheckBoxBroadcast.setText("Broadcast");
-        WestPanel.add(jCheckBoxBroadcast);
+        jLabelUsuariosLogados.setText("Lista de Usuarios Logados");
+        WestPanel.add(jLabelUsuariosLogados);
 
         jTableLogados.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -97,7 +97,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         NorthPanel.setLayout(new javax.swing.BoxLayout(NorthPanel, javax.swing.BoxLayout.LINE_AXIS));
         NorthPanel.add(rigidBox4);
 
-        jLabelPortaServidor.setText("IP do Servidor: ");
+        jLabelPortaServidor.setText("Porta do Servidor: ");
         NorthPanel.add(jLabelPortaServidor);
         NorthPanel.add(rigidBox6);
 
@@ -123,7 +123,8 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
 
         byte[] byteMessage = new byte[1000];
         dpacket = new DatagramPacket(byteMessage, byteMessage.length);
-        System.out.println("Server up");
+        this.initSocket();
+        this.jButtonConectar.setEnabled(false);
 
         if (status == false) {
             status = true;
@@ -139,17 +140,17 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         ipUser = ipUser.substring(1, ipUser.length());
         int portUser = this.dpacket.getPort();
         PrepareMessages pm = new PrepareMessages(this.usersConnected);
-        
+
         if (message.startsWith("1") && !parts[1].equals("")) {
             // connect
-            
+
             this.usersConnected.add(
                     new User(parts[1], ipUser, portUser));
-            
+
             ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
 
             String s = pm.prepareMessageToBroadcast("2#");
-            
+
             if (s != null) {
                 this.sendBroadcast(s);
             }
@@ -157,14 +158,14 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         } else if (message.startsWith("5")) {
             // disconnect
             int i = pm.searchUser(ipUser, portUser);
-            
+
             if (i != -1) {
                 this.usersConnected.remove(i);
             }
             ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
 
             String s = pm.prepareMessageToBroadcast("2#");
-            
+
             if (s != null) {
                 this.sendBroadcast(s);
             }
@@ -173,7 +174,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                 && parts[2].equals("99999")) {
             // broadcast
             parts[3] = pm.returnMessage(message, 3);
-            
+
             this.sendBroadcast("4#" + ipUser + "#" + portUser + "#" + parts[3]);
             return "";
         } else if (parts.length >= 4 && parts[0].equals("3") && !parts[1].isEmpty()
@@ -183,7 +184,17 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             parts[3] = pm.returnMessage(message, 3);
 
             if (i != -1) {
-                return "4#" + ipUser + "#" + portUser + "#(privado) " + parts[3];
+                //return "4#" + ipUser + "#" + portUser + "#(privado) " + parts[3];
+                String msg = "4#" + ipUser + "#" + portUser + "#(privado) " + parts[3];
+                byte[] me = msg.getBytes();
+                DatagramPacket reply = new DatagramPacket(
+                        me, me.length, InetAddress.getByName(
+                                this.usersConnected.get(i).getIp()),
+                        this.usersConnected.get(i).getPort());
+                dsocket.send(reply);
+                System.out.println("reply message: (" + ipUser + ":"
+                        + dpacket.getPort() + "):" + msg);
+                return "";
             } else {
                 System.out.println("invalid user!");
                 return "";
@@ -198,12 +209,12 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             return;
         }
         for (User u : this.usersConnected) {
-                byte[] me = message.getBytes();
-                DatagramPacket reply = new DatagramPacket(
-                        me, me.length, InetAddress.getByName(u.getIp()), u.getPort());
-                System.out.println("broadcast: (" + u.getIp() + ":"
-                        + u.getPort() + "):" + message);
-                dsocket.send(reply);
+            byte[] me = message.getBytes();
+            DatagramPacket reply = new DatagramPacket(
+                    me, me.length, InetAddress.getByName(u.getIp()), u.getPort());
+            System.out.println("broadcast: (" + u.getIp() + ":"
+                    + u.getPort() + "):" + message);
+            dsocket.send(reply);
         }
     }
 
@@ -217,7 +228,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                 byte[] me = dpacket.getData();
                 int packSize = dpacket.getLength();
                 String s = new String(me, 0, packSize).trim();
-                
+
                 String ipUser = dpacket.getAddress().toString();
                 ipUser = ipUser.substring(1, ipUser.length());
 
@@ -226,13 +237,15 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                         + dpacket.getPort() + "):" + s);
 
                 s = chooseAction(s);
+                // it is necessary in case of unknown protocol
+                // return message to sender
                 if (!s.isEmpty()) {
                     me = s.getBytes();
                     DatagramPacket reply = new DatagramPacket(
                             me, me.length, dpacket.getAddress(), dpacket.getPort());
                     dsocket.send(reply);
-                    System.out.println("reply message: (" + ipUser + ":"
-                        + dpacket.getPort() + "):" + s);
+                    System.out.println("reply protocol: (" + ipUser + ":"
+                            + dpacket.getPort() + "):" + s);
                 }
             }
         } catch (IOException ex) {
@@ -279,9 +292,9 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
     private javax.swing.JPanel NorthPanel;
     private javax.swing.JPanel WestPanel;
     private javax.swing.JButton jButtonConectar;
-    private javax.swing.JCheckBox jCheckBoxBroadcast;
     private javax.swing.JFormattedTextField jFormattedTextFieldPortaServidor;
     private javax.swing.JLabel jLabelPortaServidor;
+    private javax.swing.JLabel jLabelUsuariosLogados;
     private javax.swing.JScrollPane jScrollPaneTabelaConectados;
     private javax.swing.JTable jTableLogados;
     private javax.swing.Box.Filler rigidBox4;

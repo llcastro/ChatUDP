@@ -59,6 +59,10 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         jTableLogados = new javax.swing.JTable();
         NorthPanel = new javax.swing.JPanel();
         rigidBox4 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
+        jLabelNameUser = new javax.swing.JLabel();
+        rigidBox7 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
+        jFormattedTextFieldNameUser = new javax.swing.JFormattedTextField();
+        rigidBox8 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
         jLabelIPServidor = new javax.swing.JLabel();
         rigidBox2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
         jFormattedTextFieldIPServidor = new javax.swing.JFormattedTextField();
@@ -111,6 +115,15 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         NorthPanel.setLayout(new javax.swing.BoxLayout(NorthPanel, javax.swing.BoxLayout.LINE_AXIS));
         NorthPanel.add(rigidBox4);
 
+        jLabelNameUser.setText("Nome Usuário:");
+        NorthPanel.add(jLabelNameUser);
+        NorthPanel.add(rigidBox7);
+
+        jFormattedTextFieldNameUser.setText("didi");
+        jFormattedTextFieldNameUser.setMinimumSize(new java.awt.Dimension(4, 29));
+        NorthPanel.add(jFormattedTextFieldNameUser);
+        NorthPanel.add(rigidBox8);
+
         jLabelIPServidor.setText("IP do Servidor: ");
         NorthPanel.add(jLabelIPServidor);
         NorthPanel.add(rigidBox2);
@@ -118,7 +131,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         NorthPanel.add(jFormattedTextFieldIPServidor);
         NorthPanel.add(rigidBox1);
 
-        jLabelPortaServidor.setText("Porta do Servidor");
+        jLabelPortaServidor.setText("Porta do Servidor:");
         NorthPanel.add(jLabelPortaServidor);
         NorthPanel.add(rigidBox6);
 
@@ -190,9 +203,8 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             this.thread.start();
         }
         
-        String user = "didi";
+        String user = this.jFormattedTextFieldNameUser.getText().toString();
         this.message = "1#" + user;
-        System.out.println("send packet: " + this.message);
         sendMessage(this.message);
 
         this.setTitle(user);
@@ -243,6 +255,9 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                     + msg;
 
             sendMessage(this.message);
+            this.jTextAreaMensagens.setText(
+                    this.jTextAreaMensagens.getText()
+                    + "\nVocê: " + this.jTextFieldMensagem.getText());
         }
         this.jTextFieldMensagem.setText("");
     }//GEN-LAST:event_jButtonEnviarActionPerformed
@@ -373,9 +388,11 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     private javax.swing.JButton jButtonEnviar;
     private javax.swing.JCheckBox jCheckBoxBroadcast;
     private javax.swing.JFormattedTextField jFormattedTextFieldIPServidor;
+    private javax.swing.JFormattedTextField jFormattedTextFieldNameUser;
     private javax.swing.JFormattedTextField jFormattedTextFieldPortaServidor;
     private javax.swing.JLabel jLabelIPServidor;
     private javax.swing.JLabel jLabelMensagem;
+    private javax.swing.JLabel jLabelNameUser;
     private javax.swing.JLabel jLabelPortaServidor;
     private javax.swing.JScrollPane jScrollPaneTabelaConectados;
     private javax.swing.JScrollPane jScrollPaneTextAreaMensagens;
@@ -389,5 +406,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     private javax.swing.Box.Filler rigidBox4;
     private javax.swing.Box.Filler rigidBox5;
     private javax.swing.Box.Filler rigidBox6;
+    private javax.swing.Box.Filler rigidBox7;
+    private javax.swing.Box.Filler rigidBox8;
     // End of variables declaration//GEN-END:variables
 }

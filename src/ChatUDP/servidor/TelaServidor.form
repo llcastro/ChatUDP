@@ -53,9 +53,9 @@
         <Property name="axis" type="int" value="3"/>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JCheckBox" name="jCheckBoxBroadcast">
+        <Component class="javax.swing.JLabel" name="jLabelUsuariosLogados">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Broadcast"/>
+            <Property name="text" type="java.lang.String" value="Lista de Usuarios Logados"/>
           </Properties>
         </Component>
         <Container class="javax.swing.JScrollPane" name="jScrollPaneTabelaConectados">
@@ -115,7 +115,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabelPortaServidor">
           <Properties>
-            <Property name="text" type="java.lang.String" value="IP do Servidor: "/>
+            <Property name="text" type="java.lang.String" value="Porta do Servidor: "/>
           </Properties>
         </Component>
         <Component class="javax.swing.Box$Filler" name="rigidBox6">
