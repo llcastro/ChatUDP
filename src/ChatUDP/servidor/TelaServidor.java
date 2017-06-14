@@ -192,8 +192,8 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                                 this.usersConnected.get(i).getIp()),
                         this.usersConnected.get(i).getPort());
                 dsocket.send(reply);
-                System.out.println("reply message: (" + ipUser + ":"
-                        + dpacket.getPort() + "):" + msg);
+                System.out.println("reply to: (" + this.usersConnected.get(i).getIp() + ":"
+                        + this.usersConnected.get(i).getPort() + "):" + msg);
                 return "";
             } else {
                 System.out.println("invalid user!");
