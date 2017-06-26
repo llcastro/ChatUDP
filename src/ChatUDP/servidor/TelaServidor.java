@@ -170,6 +170,11 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
                 this.sendBroadcast(s);
             }
             return "";
+        } else if (message.startsWith("6")) {
+            // answer email
+            
+            System.out.println("ip:" + ipUser + ", port:" + portUser + 
+                    ", destinatario: " + parts[1] + ", assunto: " + parts[2]);
         } else if (parts.length >= 4 && parts[0].equals("3") && parts[1].equals("999.999.999.999")
                 && parts[2].equals("99999")) {
             // broadcast
