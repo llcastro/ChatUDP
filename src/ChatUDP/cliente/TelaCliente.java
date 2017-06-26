@@ -35,17 +35,18 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     private ArrayList<User> usersConnected;
     private Thread thread;
 
-    private DefaultTableModel dtmMensagens;
-    private MailApp mail;
-    private boolean re = false;
+    //private DefaultTableModel dtmMensagens;
+    private MailApp mailApp;
+    private boolean responderEmail = false;
 
-    private VOConfigMail vom = null;
+    private VOConfigMail vocm = null;
     private ArrayList<VOMail> emails;
 
     public TelaCliente() {
         initComponents();
 
         this.jButtonDesconectar.setEnabled(false);
+        this.jButtonAtualizarEmail.setEnabled(false);
 
         this.usersConnected = new ArrayList<>();
         this.emails = new ArrayList<>();
@@ -54,17 +55,17 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     }
 
     private void startEmail() {
-        mail = new MailApp(
-                this.vom.getLogin(),
-                this.vom.getPasswd(),
-                this.vom.getHostSmtp(),
-                this.vom.getHostImap(),
-                this.vom.getPortSmtp(),
-                this.vom.getPortImap());
+        mailApp = new MailApp(
+                this.vocm.getLogin(),
+                this.vocm.getPasswd(),
+                this.vocm.getHostSmtp(),
+                this.vocm.getHostImap(),
+                this.vocm.getPortSmtp(),
+                this.vocm.getPortImap());
         //dtmMensagens = (DefaultTableModel) jTableEmails.getModel();
-        
+
         atualizar();
-        mail.getF().addMessageCountListener(new MessageCountListener() {
+        mailApp.getF().addMessageCountListener(new MessageCountListener() {
             @Override
             public void messagesAdded(MessageCountEvent mce) {
                 atualizar();
@@ -79,7 +80,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             @Override
             public void run() {
                 try {
-                    mail.getF().idle();
+                    mailApp.getF().idle();
                 } catch (MessagingException ex) {
                     Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -88,11 +89,11 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     }
 
     public void atualizar() {
-        mail.conectar();
+        mailApp.conectar();
         //dtmMensagens.setRowCount(0);
         this.emails.clear();
 
-        for (Message m : mail.getMensagens()) {
+        for (Message m : mailApp.getMensagens()) {
             try {
                 Address[] f = m.getFrom();
                 //Object[] i = {f[0], m.getSubject()};
@@ -102,7 +103,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                 Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
+
         ((AbstractTableModel) jTableEmails.getModel()).fireTableDataChanged();
     }
 
@@ -131,7 +132,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         jLabelHostIMAP = new javax.swing.JLabel();
         jLabelPortaSMTP = new javax.swing.JLabel();
         jLabelPortaIMAP = new javax.swing.JLabel();
-        jButtonConfirmar = new javax.swing.JButton();
+        jButtonConectarEmail = new javax.swing.JButton();
         jFormattedTextFieldLogin = new javax.swing.JFormattedTextField();
         jFormattedTextFieldSenha = new javax.swing.JFormattedTextField();
         jFormattedTextFieldHostSMTP = new javax.swing.JFormattedTextField();
@@ -141,6 +142,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         jButtonAtualizarEmail = new javax.swing.JButton();
         jScrollPaneEmails = new javax.swing.JScrollPane();
         jTableEmails = new javax.swing.JTable();
+        jButtonLerEmail = new javax.swing.JButton();
         NorthPanel = new javax.swing.JPanel();
         rigidBox4 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
         jLabelNameUser = new javax.swing.JLabel();
@@ -203,13 +205,13 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         jLabelPortaIMAP.setText("porta IMAP:");
         jPanelConfigMail.add(jLabelPortaIMAP, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 160, -1, -1));
 
-        jButtonConfirmar.setText("Conectar email");
-        jButtonConfirmar.addActionListener(new java.awt.event.ActionListener() {
+        jButtonConectarEmail.setText("Conectar email");
+        jButtonConectarEmail.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonConfirmarActionPerformed(evt);
+                jButtonConectarEmailActionPerformed(evt);
             }
         });
-        jPanelConfigMail.add(jButtonConfirmar, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, 150, -1));
+        jPanelConfigMail.add(jButtonConectarEmail, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, 150, -1));
 
         jFormattedTextFieldLogin.setText("sd");
         jPanelConfigMail.add(jFormattedTextFieldLogin, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 10, 160, -1));
@@ -256,6 +258,14 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
 
         WestPanel.add(jScrollPaneEmails, java.awt.BorderLayout.CENTER);
 
+        jButtonLerEmail.setText("Ler email");
+        jButtonLerEmail.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonLerEmailActionPerformed(evt);
+            }
+        });
+        WestPanel.add(jButtonLerEmail, java.awt.BorderLayout.PAGE_END);
+
         getContentPane().add(WestPanel, java.awt.BorderLayout.WEST);
 
         NorthPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -274,6 +284,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         jLabelIPServidor.setText("IP do Servidor: ");
         NorthPanel.add(jLabelIPServidor);
         NorthPanel.add(rigidBox2);
+
         jFormattedTextFieldIPServidor.setText("127.0.0.1");
         NorthPanel.add(jFormattedTextFieldIPServidor);
         NorthPanel.add(rigidBox1);
@@ -433,24 +444,43 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         this.jTextFieldMensagem.setText("");
     }//GEN-LAST:event_jButtonEnviarActionPerformed
 
-    private void jButtonConfirmarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConfirmarActionPerformed
-        this.vom = new VOConfigMail(
-            this.jFormattedTextFieldLogin.getText(),
-            this.jFormattedTextFieldSenha.getText(),
-            this.jFormattedTextFieldHostSMTP.getText(),
-            this.jFormattedTextFieldHostIMAP.getText(),
-            Integer.valueOf(this.jFormattedTextFieldPortaSMTP.getText()),
-            Integer.valueOf(this.jFormattedTextFieldPortaIMAP.getText()));
+    private void jButtonConectarEmailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConectarEmailActionPerformed
+        this.vocm = new VOConfigMail(
+                this.jFormattedTextFieldLogin.getText(),
+                this.jFormattedTextFieldSenha.getText(),
+                this.jFormattedTextFieldHostSMTP.getText(),
+                this.jFormattedTextFieldHostIMAP.getText(),
+                Integer.valueOf(this.jFormattedTextFieldPortaSMTP.getText()),
+                Integer.valueOf(this.jFormattedTextFieldPortaIMAP.getText()));
         this.startEmail();
-    }//GEN-LAST:event_jButtonConfirmarActionPerformed
+        this.jButtonConectarEmail.setEnabled(false);
+        this.jButtonAtualizarEmail.setEnabled(true);
+    }//GEN-LAST:event_jButtonConectarEmailActionPerformed
 
     private void jButtonAtualizarEmailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAtualizarEmailActionPerformed
         this.atualizar();
     }//GEN-LAST:event_jButtonAtualizarEmailActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        mail.desconectar();
+        if (this.mailApp != null) {
+            this.mailApp.desconectar();
+        }
     }//GEN-LAST:event_formWindowClosing
+
+    private void jButtonLerEmailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLerEmailActionPerformed
+        int r = jTableEmails.getSelectedRow();
+        if (r != -1) {
+            if (!this.responderEmail) {
+                this.responderEmail = true;
+                ResponderEmail responder = new ResponderEmail(
+                        (this.mailApp.getMensagens()[r]), this.mailApp, this);
+                responder.setVisible(true);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecione um e-mail!", "Atenção",
+                    JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_jButtonLerEmailActionPerformed
 
     private void disconnectChat() {
         this.jTextAreaMensagens.setText("");
@@ -462,7 +492,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
     }
 
-    private void sendMessage(String protocol) {
+    public void sendMessage(String protocol) {
         try {
             byte[] byteMessage = protocol.getBytes();
             DatagramPacket dpacket = new DatagramPacket(
@@ -541,6 +571,10 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         }
     }
 
+    public void setResponderEmail(boolean responderEmail) {
+        this.responderEmail = responderEmail;
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -575,9 +609,10 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     private javax.swing.JPanel WestPanel;
     private javax.swing.JButton jButtonAtualizarEmail;
     private javax.swing.JButton jButtonConectar;
-    private javax.swing.JButton jButtonConfirmar;
+    private javax.swing.JButton jButtonConectarEmail;
     private javax.swing.JButton jButtonDesconectar;
     private javax.swing.JButton jButtonEnviar;
+    private javax.swing.JButton jButtonLerEmail;
     private javax.swing.JCheckBox jCheckBoxBroadcast;
     private javax.swing.JFormattedTextField jFormattedTextFieldHostIMAP;
     private javax.swing.JFormattedTextField jFormattedTextFieldHostSMTP;

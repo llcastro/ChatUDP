@@ -1,6 +1,7 @@
 package ChatUDP.servidor;
 
 import ChatUDP.model.PrepareMessages;
+import ChatUDP.model.Reports;
 import ChatUDP.model.TableModelUsuarios;
 import ChatUDP.model.User;
 import java.io.IOException;
@@ -175,6 +176,10 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             
             System.out.println("ip:" + ipUser + ", port:" + portUser + 
                     ", destinatario: " + parts[1] + ", assunto: " + parts[2]);
+            new Reports("src/ChatUDP/relatorios/teste.in")
+                    .writeToFile("ip:" + ipUser + ", port:" + portUser + 
+                    ", destinatario: " + parts[1] + ", assunto: " + parts[2]);
+            return "";
         } else if (parts.length >= 4 && parts[0].equals("3") && parts[1].equals("999.999.999.999")
                 && parts[2].equals("99999")) {
             // broadcast
