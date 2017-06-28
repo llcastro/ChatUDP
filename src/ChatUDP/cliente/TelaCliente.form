@@ -292,11 +292,6 @@
             <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.RigidArea"/>
           </AuxValues>
         </Component>
-        <Component class="javax.swing.JLabel" name="jLabelNameUser">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Nome Usu&#xe1;rio:"/>
-          </Properties>
-        </Component>
         <Component class="javax.swing.Box$Filler" name="rigidBox7">
           <Properties>
             <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
@@ -312,14 +307,6 @@
           <AuxValues>
             <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.RigidArea"/>
           </AuxValues>
-        </Component>
-        <Component class="javax.swing.JFormattedTextField" name="jFormattedTextFieldNameUser">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="didi"/>
-            <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-              <Dimension value="[4, 29]"/>
-            </Property>
-          </Properties>
         </Component>
         <Component class="javax.swing.Box$Filler" name="rigidBox8">
           <Properties>
@@ -477,6 +464,49 @@
         <Property name="axis" type="int" value="1"/>
       </Layout>
       <SubComponents>
+        <Container class="javax.swing.JPanel" name="jPanelUsuario">
+          <Properties>
+            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[338, 25]"/>
+            </Property>
+          </Properties>
+
+          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout"/>
+          <SubComponents>
+            <Component class="javax.swing.JLabel" name="jLabelNameUser">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Nome Usu&#xe1;rio:"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JFormattedTextField" name="jFormattedTextFieldNameUser">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="didi"/>
+                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                  <Dimension value="[40, 29]"/>
+                </Property>
+                <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                  <Dimension value="[50, 19]"/>
+                </Property>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JLabel" name="jLabelPasswdUser">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Senha Usu&#xe1;rio:"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JFormattedTextField" name="jFormattedTextFieldPasswdUser">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="123"/>
+                <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                  <Dimension value="[40, 29]"/>
+                </Property>
+                <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                  <Dimension value="[50, 19]"/>
+                </Property>
+              </Properties>
+            </Component>
+          </SubComponents>
+        </Container>
         <Component class="javax.swing.JCheckBox" name="jCheckBoxBroadcast">
           <Properties>
             <Property name="text" type="java.lang.String" value="Broadcast"/>

@@ -45,7 +45,7 @@ public class EchoServer {
         String[] parts = message.split("#");
         
         if(parts.length == 2 && parts[0].equals("1") && !parts[1].equals("")) {
-            connected.add(new User(parts[1], dpacket.getAddress().toString(), dpacket.getPort()));
+            //connected.add(new User(parts[1], dpacket.getAddress().toString(), dpacket.getPort()));
             System.out.println("Cliente " + parts[1] + " logado");
             return "1";
         } else if(parts.length == 1 && parts[0].equals("5")) {

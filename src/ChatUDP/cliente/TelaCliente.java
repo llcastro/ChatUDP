@@ -41,6 +41,9 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
 
     private VOConfigMail vocm = null;
     private ArrayList<VOMail> emails;
+    
+    private String userName;
+    private String passwd;
 
     public TelaCliente() {
         initComponents();
@@ -76,16 +79,6 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                 atualizar();
             }
         });
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mailApp.getF().idle();
-                } catch (MessagingException ex) {
-                    Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }).start();
     }
 
     public void atualizar() {
@@ -145,9 +138,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         jButtonLerEmail = new javax.swing.JButton();
         NorthPanel = new javax.swing.JPanel();
         rigidBox4 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
-        jLabelNameUser = new javax.swing.JLabel();
         rigidBox7 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
-        jFormattedTextFieldNameUser = new javax.swing.JFormattedTextField();
         rigidBox8 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
         jLabelIPServidor = new javax.swing.JLabel();
         rigidBox2 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
@@ -161,6 +152,11 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         rigidBox = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
         jButtonDesconectar = new javax.swing.JButton();
         CenterPanel = new javax.swing.JPanel();
+        jPanelUsuario = new javax.swing.JPanel();
+        jLabelNameUser = new javax.swing.JLabel();
+        jFormattedTextFieldNameUser = new javax.swing.JFormattedTextField();
+        jLabelPasswdUser = new javax.swing.JLabel();
+        jFormattedTextFieldPasswdUser = new javax.swing.JFormattedTextField();
         jCheckBoxBroadcast = new javax.swing.JCheckBox();
         jScrollPaneTabelaConectados = new javax.swing.JScrollPane();
         jTableLogados = new javax.swing.JTable();
@@ -271,14 +267,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         NorthPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         NorthPanel.setLayout(new javax.swing.BoxLayout(NorthPanel, javax.swing.BoxLayout.LINE_AXIS));
         NorthPanel.add(rigidBox4);
-
-        jLabelNameUser.setText("Nome Usuário:");
-        NorthPanel.add(jLabelNameUser);
         NorthPanel.add(rigidBox7);
-
-        jFormattedTextFieldNameUser.setText("didi");
-        jFormattedTextFieldNameUser.setMinimumSize(new java.awt.Dimension(4, 29));
-        NorthPanel.add(jFormattedTextFieldNameUser);
         NorthPanel.add(rigidBox8);
 
         jLabelIPServidor.setText("IP do Servidor: ");
@@ -319,6 +308,26 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         CenterPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         CenterPanel.setPreferredSize(new java.awt.Dimension(400, 496));
         CenterPanel.setLayout(new javax.swing.BoxLayout(CenterPanel, javax.swing.BoxLayout.Y_AXIS));
+
+        jPanelUsuario.setPreferredSize(new java.awt.Dimension(338, 25));
+
+        jLabelNameUser.setText("Nome Usuário:");
+        jPanelUsuario.add(jLabelNameUser);
+
+        jFormattedTextFieldNameUser.setText("didi");
+        jFormattedTextFieldNameUser.setMinimumSize(new java.awt.Dimension(40, 29));
+        jFormattedTextFieldNameUser.setPreferredSize(new java.awt.Dimension(50, 19));
+        jPanelUsuario.add(jFormattedTextFieldNameUser);
+
+        jLabelPasswdUser.setText("Senha Usuário:");
+        jPanelUsuario.add(jLabelPasswdUser);
+
+        jFormattedTextFieldPasswdUser.setText("123");
+        jFormattedTextFieldPasswdUser.setMinimumSize(new java.awt.Dimension(40, 29));
+        jFormattedTextFieldPasswdUser.setPreferredSize(new java.awt.Dimension(50, 19));
+        jPanelUsuario.add(jFormattedTextFieldPasswdUser);
+
+        CenterPanel.add(jPanelUsuario);
 
         jCheckBoxBroadcast.setText("Broadcast");
         CenterPanel.add(jCheckBoxBroadcast);
@@ -376,7 +385,9 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonConectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConectarActionPerformed
-        this.initSocket();
+        if(this.dsocket == null) {
+            this.initSocket();
+        }
         this.setIPPort();
 
         if (this.thread == null) {
@@ -385,11 +396,12 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
             this.thread.start();
         }
 
-        String user = this.jFormattedTextFieldNameUser.getText().toString();
-        this.message = "1#" + user;
+        this.userName = this.jFormattedTextFieldNameUser.getText().toString();
+        this.passwd = this.jFormattedTextFieldPasswdUser.getText().toString();
+        this.message = "1#" + this.userName + "#" + this.passwd;
         sendMessage(this.message);
 
-        this.setTitle(user);
+        this.setTitle(this.userName);
         this.jButtonConectar.setEnabled(false);
         this.jButtonDesconectar.setEnabled(true);
     }//GEN-LAST:event_jButtonConectarActionPerformed
@@ -465,6 +477,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
         if (this.mailApp != null) {
             this.mailApp.desconectar();
         }
+        this.sendMessage("5#");
     }//GEN-LAST:event_formWindowClosing
 
     private void jButtonLerEmailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLerEmailActionPerformed
@@ -474,6 +487,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                 this.responderEmail = true;
                 ResponderEmail responder = new ResponderEmail(
                         (this.mailApp.getMensagens()[r]), this.mailApp, this);
+                responder.setUserName(this.userName);
                 responder.setVisible(true);
             }
         } else {
@@ -493,11 +507,15 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     }
 
     public void sendMessage(String protocol) {
+        if(this.dsocket == null) {
+            System.out.println("sendMessage: socket not initialized");
+            return;
+        }
         try {
             byte[] byteMessage = protocol.getBytes();
             DatagramPacket dpacket = new DatagramPacket(
                     byteMessage, byteMessage.length, this.address, this.port);
-            dsocket.send(dpacket);
+            this.dsocket.send(dpacket);
             System.out.println("sendMessage: " + protocol);
         } catch (UnknownHostException ex) {
             Logger.getLogger(TelaCliente.class.getName()).log(Level.SEVERE, null, ex);
@@ -561,6 +579,18 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
                         this.jTextAreaMensagens.setText(
                                 this.jTextAreaMensagens.getText() + "\n" + nameUser + ": " + s);
                         break;
+                    case -1: // error 1
+                        JOptionPane.showMessageDialog(this, "Usuário ou Senha inválido", "Atenção",
+                                            JOptionPane.WARNING_MESSAGE);
+                        this.jButtonConectar.setEnabled(true);
+                        this.jButtonDesconectar.setEnabled(false);
+                        break;
+                    case -2: // error 2
+                        JOptionPane.showMessageDialog(this, "Usuário já conectado", "Atenção",
+                                            JOptionPane.WARNING_MESSAGE);
+                        this.jButtonConectar.setEnabled(true);
+                        this.jButtonDesconectar.setEnabled(false);
+                        break;
                     default:
                         System.out.println("incorrect protocol: " + usersList);
                         break;
@@ -619,6 +649,7 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     private javax.swing.JFormattedTextField jFormattedTextFieldIPServidor;
     private javax.swing.JFormattedTextField jFormattedTextFieldLogin;
     private javax.swing.JFormattedTextField jFormattedTextFieldNameUser;
+    private javax.swing.JFormattedTextField jFormattedTextFieldPasswdUser;
     private javax.swing.JFormattedTextField jFormattedTextFieldPortaIMAP;
     private javax.swing.JFormattedTextField jFormattedTextFieldPortaSMTP;
     private javax.swing.JFormattedTextField jFormattedTextFieldPortaServidor;
@@ -629,11 +660,13 @@ public class TelaCliente extends javax.swing.JFrame implements Runnable {
     private javax.swing.JLabel jLabelLogin;
     private javax.swing.JLabel jLabelMensagem;
     private javax.swing.JLabel jLabelNameUser;
+    private javax.swing.JLabel jLabelPasswdUser;
     private javax.swing.JLabel jLabelPortaIMAP;
     private javax.swing.JLabel jLabelPortaSMTP;
     private javax.swing.JLabel jLabelPortaServidor;
     private javax.swing.JLabel jLabelSenha;
     private javax.swing.JPanel jPanelConfigMail;
+    private javax.swing.JPanel jPanelUsuario;
     private javax.swing.JScrollPane jScrollPaneEmails;
     private javax.swing.JScrollPane jScrollPaneTabelaConectados;
     private javax.swing.JScrollPane jScrollPaneTextAreaMensagens;

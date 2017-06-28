@@ -4,15 +4,25 @@ import ChatUDP.model.PrepareMessages;
 import ChatUDP.model.Reports;
 import ChatUDP.model.TableModelUsuarios;
 import ChatUDP.model.User;
+import ChatUDP.model.Util;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
 
 public class TelaServidor extends javax.swing.JFrame implements Runnable {
@@ -21,14 +31,18 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
     private DatagramSocket dsocket;
     private int port;
     private boolean status = false;
+    private String path = "src/ChatUDP/relatorios/teste.in";
 
     private ArrayList<User> usersConnected;
+    private ArrayList<User> credentials;
 
     public TelaServidor() {
         initComponents();
 
         this.usersConnected = new ArrayList<>();
         jTableLogados.setModel(new TableModelUsuarios(this.usersConnected));
+
+        this.credentials = new Util(credentials).setCredentials();
     }
 
     private void initSocket() {
@@ -64,9 +78,16 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         jFormattedTextFieldPortaServidor = new javax.swing.JFormattedTextField();
         rigidBox5 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
         jButtonConectar = new javax.swing.JButton();
+        rigidBox7 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10), new java.awt.Dimension(10, 10));
+        jButtonCadastrarCredencial = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBounds(new java.awt.Rectangle(0, 0, 10, 10));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         WestPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         WestPanel.setMaximumSize(new java.awt.Dimension(100, 300));
@@ -113,6 +134,15 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             }
         });
         NorthPanel.add(jButtonConectar);
+        NorthPanel.add(rigidBox7);
+
+        jButtonCadastrarCredencial.setText("Cadastrar Credencial");
+        jButtonCadastrarCredencial.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonCadastrarCredencialActionPerformed(evt);
+            }
+        });
+        NorthPanel.add(jButtonCadastrarCredencial);
 
         getContentPane().add(NorthPanel, java.awt.BorderLayout.NORTH);
 
@@ -134,6 +164,34 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         }
     }//GEN-LAST:event_jButtonConectarActionPerformed
 
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        for (User u : this.usersConnected) {
+            this.makeLog(u);
+        }
+    }//GEN-LAST:event_formWindowClosing
+
+    private void jButtonCadastrarCredencialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCadastrarCredencialActionPerformed
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+
+        JPanel label = new JPanel(new GridLayout(0, 1, 2, 2));
+        label.add(new JLabel("Usuário", SwingConstants.RIGHT));
+        label.add(new JLabel("Senha", SwingConstants.RIGHT));
+        panel.add(label, BorderLayout.WEST);
+
+        JPanel controls = new JPanel(new GridLayout(0, 1, 2, 2));
+        JTextField username = new JTextField();
+        controls.add(username);
+        JPasswordField password = new JPasswordField();
+        controls.add(password);
+        panel.add(controls, BorderLayout.CENTER);
+
+        JOptionPane.showConfirmDialog(this, panel, "Criar nova credencial", JOptionPane.OK_CANCEL_OPTION);
+        
+        if(!username.getText().equals("") && !password.getText().equals("")) {
+            this.credentials.add(new User(username.getText(), password.getText(), 'n'));
+        }
+    }//GEN-LAST:event_jButtonCadastrarCredencialActionPerformed
+
     private String chooseAction(String message) throws IOException {
         String[] parts = message.split("#");
 
@@ -142,25 +200,51 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         int portUser = this.dpacket.getPort();
         PrepareMessages pm = new PrepareMessages(this.usersConnected);
 
-        if (message.startsWith("1") && !parts[1].equals("")) {
+        if (message.startsWith("1") && !parts[1].equals("") && !parts[2].equals("")) {
             // connect
 
-            this.usersConnected.add(
-                    new User(parts[1], ipUser, portUser));
+            int v = new Util(this.credentials)
+                    .validateCredential(parts[1], parts[2]);
 
-            ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
+            if (v == -1) {
+                return "e1";
+            } else if (v == -2) {
+                return "e2";
+            } else {
+                this.credentials.get(v).setLogged('s');
+                this.usersConnected.add(new User(
+                        parts[1],
+                        parts[2],
+                        ipUser,
+                        portUser,
+                        LocalDateTime.now(),
+                        LocalDateTime.now()));
 
-            String s = pm.prepareMessageToBroadcast("2#");
+                ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
 
-            if (s != null) {
-                this.sendBroadcast(s);
+                String s = pm.prepareMessageToBroadcast("2#");
+
+                if (s != null) {
+                    this.sendBroadcast(s);
+                }
+                return "";
             }
-            return "";
         } else if (message.startsWith("5")) {
             // disconnect
             int i = pm.searchUser(ipUser, portUser);
+            int j = -1;
+            if(i != -1) {
+            j = new Util(this.credentials)
+                    .searchCredential(this.usersConnected.get(i).getUserName(),
+                            this.usersConnected.get(i).getPasswd());
+            }
+            
+            if (j != -1) {
+                this.credentials.get(j).setLogged('n');
+            }
 
             if (i != -1) {
+                this.makeLog(this.usersConnected.get(i));
                 this.usersConnected.remove(i);
             }
             ((AbstractTableModel) jTableLogados.getModel()).fireTableDataChanged();
@@ -168,17 +252,17 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
             String s = pm.prepareMessageToBroadcast("2#");
 
             if (s != null) {
-                this.sendBroadcast(s);
+                this.sendBroadcast(s); // update users
             }
             return "";
         } else if (message.startsWith("6")) {
             // answer email
-            
-            System.out.println("ip:" + ipUser + ", port:" + portUser + 
-                    ", destinatario: " + parts[1] + ", assunto: " + parts[2]);
-            new Reports("src/ChatUDP/relatorios/teste.in")
-                    .writeToFile("ip:" + ipUser + ", port:" + portUser + 
-                    ", destinatario: " + parts[1] + ", assunto: " + parts[2]);
+            new Reports(path)
+                    .report("assunto: " + parts[2]
+                            + ", destinatario: " + parts[1]
+                            + ", hora: " + LocalDateTime.now());
+            int i = pm.searchUser(ipUser, portUser);
+            this.usersConnected.get(i).sumAnsweredEmails();
             return "";
         } else if (parts.length >= 4 && parts[0].equals("3") && parts[1].equals("999.999.999.999")
                 && parts[2].equals("99999")) {
@@ -263,6 +347,16 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
         }
     }
 
+    private void makeLog(User user) {
+        user.setLogout(LocalDateTime.now());
+
+        String msg = "usuario: " + user.getUserName()
+                + ", data entrada: " + user.getLogin()
+                + ", data saida: " + user.getLogout()
+                + ", e-mails respondidos: " + user.getAnsweredEmails();
+        new Reports(this.path).report(msg);
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -301,6 +395,7 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel NorthPanel;
     private javax.swing.JPanel WestPanel;
+    private javax.swing.JButton jButtonCadastrarCredencial;
     private javax.swing.JButton jButtonConectar;
     private javax.swing.JFormattedTextField jFormattedTextFieldPortaServidor;
     private javax.swing.JLabel jLabelPortaServidor;
@@ -310,5 +405,6 @@ public class TelaServidor extends javax.swing.JFrame implements Runnable {
     private javax.swing.Box.Filler rigidBox4;
     private javax.swing.Box.Filler rigidBox5;
     private javax.swing.Box.Filler rigidBox6;
+    private javax.swing.Box.Filler rigidBox7;
     // End of variables declaration//GEN-END:variables
 }

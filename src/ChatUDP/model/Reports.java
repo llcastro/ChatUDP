@@ -1,12 +1,8 @@
 package ChatUDP.model;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.Writer;
 
 public class Reports {
@@ -18,7 +14,7 @@ public class Reports {
         this.path = path;
     }
 
-    public void writeToFile(String msg) {
+    public void report(String msg) {
         try {
             writer = new FileWriter(new File(path), true);
             writer.write(msg + "\n");

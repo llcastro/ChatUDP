@@ -1,12 +1,11 @@
 package ChatUDP.cliente;
 
+import ChatUDP.model.User;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -16,7 +15,6 @@ import javax.mail.Flags;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.swing.JOptionPane;
-import sun.misc.IOUtils;
 
 public class ResponderEmail extends javax.swing.JFrame {
 
@@ -24,6 +22,7 @@ public class ResponderEmail extends javax.swing.JFrame {
     private MailApp mailApp;
     private TelaCliente telaCliente;
     private File file;
+    private String userName;
 
     public ResponderEmail(Message mensagem, MailApp mail, TelaCliente e) {
         initComponents();
@@ -270,6 +269,10 @@ public class ResponderEmail extends javax.swing.JFrame {
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         telaCliente.setResponderEmail(false);
     }//GEN-LAST:event_formWindowClosing
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

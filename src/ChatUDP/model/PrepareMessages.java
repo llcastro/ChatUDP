@@ -1,6 +1,7 @@
 
 package ChatUDP.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class PrepareMessages {
@@ -26,8 +27,11 @@ public class PrepareMessages {
             for (int i = 1; i < size; i = i + 3) {
                 this.users.add(
                         new User(parts[i+2],
+                                "",
                                 parts[i],
-                                Integer.valueOf(parts[i+1])));
+                                Integer.valueOf(parts[i+1]),
+                                LocalDateTime.now(),
+                                LocalDateTime.now()));
             }
             return 2;
         } else if(message.startsWith("5")) {
@@ -36,6 +40,10 @@ public class PrepareMessages {
         } else if(message.startsWith("4")) {
             // receive message
             return 4;
+        } else if(message.startsWith("e1")) {
+            return -1;
+        } else if(message.startsWith("e2")) {
+            return -2;
         }
         
         return -1;
